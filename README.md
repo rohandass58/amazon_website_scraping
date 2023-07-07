@@ -1,6 +1,6 @@
 # amazon_website_scraping
 
-clone the directory
+clone the Project
 
 install the requirements.txt file using **pip install -r requirements.txt**
 
