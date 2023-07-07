@@ -8,7 +8,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-GECKO_DRIVER_PATH = "/path/to/geckodriver"  # Replace with the actual path to your GeckoDriver executable
+GECKO_DRIVER_PATH = "/snap/bin/geckodriver"
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/91.0",
@@ -18,7 +18,7 @@ HEADERS = {
 
 def get_product_details(url):
     options = Options()
-    options.add_argument("-headless")  # Run Firefox in headless mode
+    options.add_argument("-headless")
 
     service = Service(GECKO_DRIVER_PATH)
     driver = webdriver.Firefox(service=service, options=options)
@@ -36,7 +36,7 @@ def get_product_details(url):
         EC.presence_of_element_located((By.CSS_SELECTOR, "span.a-size-large"))
     )
 
-    time.sleep(5)  # Wait for the page to load
+    time.sleep(5)
 
     soup = BeautifulSoup(driver.page_source, "html.parser")
     driver.quit()
@@ -123,17 +123,17 @@ def scrape_products():
         )
 
         product_count = 0
-        scraped_urls = []  # List to keep track of scraped URLs
+        scraped_urls = []
 
         options = Options()
-        options.add_argument("-headless")  # Run Firefox in headless mode
+        options.add_argument("-headless")
 
         for page in range(1, total_pages + 1):
             url = base_url + str(page)
             service = Service(GECKO_DRIVER_PATH)
             driver = webdriver.Firefox(service=service, options=options)
             driver.get(url)
-            time.sleep(5)  # Wait for the page to load
+            time.sleep(5)
 
             soup = BeautifulSoup(driver.page_source, "html.parser")
 
@@ -143,14 +143,14 @@ def scrape_products():
                     break
 
                 product_url = "https://www.amazon.in" + link["href"]
-                if product_url in scraped_urls:  # Skip if URL already scraped
+                if product_url in scraped_urls:
                     continue
 
                 try:
                     product_details = get_product_details(product_url)
                     writer.writerow(product_details)
                     product_count += 1
-                    scraped_urls.append(product_url)  # Add URL to scraped URLs
+                    scraped_urls.append(product_url)
                 except Exception as e:
                     print(f"Error scraping product at URL: {product_url}")
                     print(f"Error message: {str(e)}")
