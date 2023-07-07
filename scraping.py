@@ -8,9 +8,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-GECKO_DRIVER_PATH = (
-    "path_to_geckodriver"  # Replace with the actual path to your GeckoDriver executable
-)
+GECKO_DRIVER_PATH = "/path/to/geckodriver"  # Replace with the actual path to your GeckoDriver executable
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/91.0",
@@ -129,10 +127,9 @@ def scrape_products():
         options = Options()
         options.add_argument("-headless")  # Run Firefox in headless mode
 
-        service = Service(GECKO_DRIVER_PATH)
-
         for page in range(1, total_pages + 1):
             url = base_url + str(page)
+            service = Service(GECKO_DRIVER_PATH)
             driver = webdriver.Firefox(service=service, options=options)
             driver.get(url)
             time.sleep(5)  # Wait for the page to load
