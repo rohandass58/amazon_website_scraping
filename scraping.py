@@ -1,42 +1,26 @@
 import csv
 import time
-import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.firefox.service import Service
-from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from requests.exceptions import RequestException
 
-GECKO_DRIVER_PATH = "/snap/bin/geckodriver"  # Replace with the actual path to your GeckoDriver executable
+GECKO_DRIVER_PATH = (
+    "path_to_geckodriver"  # Replace with the actual path to your GeckoDriver executable
+)
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Firefox/91.0",
     "Accept-Language": "en-US, en;q=0.5",
 }
 
-MAX_RETRIES = 3
-RETRY_DELAY = 5
-
-
-def get_url_with_retries(url):
-    for _ in range(MAX_RETRIES):
-        try:
-            response = requests.get(url, headers=HEADERS)
-            response.raise_for_status()
-            return response.content
-        except RequestException as e:
-            print(f"Error accessing URL: {url}")
-            print(f"Error message: {str(e)}")
-            time.sleep(RETRY_DELAY)
-    return None
-
 
 def get_product_details(url):
     options = Options()
-    options.headless = True  # Run Firefox in headless mode
+    options.add_argument("-headless")  # Run Firefox in headless mode
 
     service = Service(GECKO_DRIVER_PATH)
     driver = webdriver.Firefox(service=service, options=options)
@@ -59,7 +43,7 @@ def get_product_details(url):
     soup = BeautifulSoup(driver.page_source, "html.parser")
     driver.quit()
 
-    product_name = product_name_element.text.strip()
+    product_name = soup.select_one("span.a-size-large").text.strip()
 
     product_price = "Not available"
     price_element = soup.select_one("span.a-price-whole")
@@ -143,24 +127,19 @@ def scrape_products():
         product_count = 0
 
         options = Options()
-        options.headless = True  # Run Firefox in headless mode
+        options.add_argument("-headless")  # Run Firefox in headless mode
 
         service = Service(GECKO_DRIVER_PATH)
 
         for page in range(1, total_pages + 1):
             url = base_url + str(page)
-
-            page_source = get_url_with_retries(url)
-            if page_source is None:
-                continue  # Skip this iteration if unable to retrieve the page
-
-            soup = BeautifulSoup(page_source, "html.parser")
-
             driver = webdriver.Firefox(service=service, options=options)
+            driver.get(url)
+            time.sleep(5)  # Wait for the page to load
 
-            product_links = soup.select(
-                "a.a-link-normal.a-text-normal:not(.a-color-base.a-text-normal)"
-            )
+            soup = BeautifulSoup(driver.page_source, "html.parser")
+
+            product_links = soup.select("a.a-link-normal.a-text-normal")
             for link in product_links:
                 if product_count >= total_products:
                     break
@@ -168,15 +147,11 @@ def scrape_products():
                 product_url = "https://www.amazon.in" + link["href"]
                 try:
                     product_details = get_product_details(product_url)
-                    if product_details is not None:
-                        writer.writerow(product_details)
-                        product_count += 1
+                    writer.writerow(product_details)
+                    product_count += 1
                 except Exception as e:
                     print(f"Error scraping product at URL: {product_url}")
                     print(f"Error message: {str(e)}")
-
-                if product_count >= total_products:
-                    break
 
             driver.quit()
 
