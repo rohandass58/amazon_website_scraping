@@ -123,6 +123,7 @@ def scrape_products():
         )
 
         product_count = 0
+        scraped_urls = []  # List to keep track of scraped URLs
 
         options = Options()
         options.add_argument("-headless")  # Run Firefox in headless mode
@@ -142,10 +143,14 @@ def scrape_products():
                     break
 
                 product_url = "https://www.amazon.in" + link["href"]
+                if product_url in scraped_urls:  # Skip if URL already scraped
+                    continue
+
                 try:
                     product_details = get_product_details(product_url)
                     writer.writerow(product_details)
                     product_count += 1
+                    scraped_urls.append(product_url)  # Add URL to scraped URLs
                 except Exception as e:
                     print(f"Error scraping product at URL: {product_url}")
                     print(f"Error message: {str(e)}")
